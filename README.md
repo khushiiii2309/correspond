@@ -2,7 +2,7 @@
 
 An AI-powered email intelligence and productivity app. Correspond helps you understand
 what's in your inbox, surface what needs attention, extract action items, and draft
-replies — without ever sending anything on your behalf without approval.
+replies without ever sending anything on your behalf without approval.
 
 This repository is being built incrementally, phase by phase (see `PROJECT SPEC` in the
 original planning conversation). **This is Phase 1: working foundation.**
