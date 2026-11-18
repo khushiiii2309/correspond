@@ -1,0 +1,133 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.header {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.subject {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: var(--color-text);
+}
+
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.metaText {
+  font-size: 13px;
+}
+
+.toLine {
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.metaRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.timestamp {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.readToggle {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.readToggle:hover {
+  background: var(--color-bg-hover);
+}
+
+.insights {
+  padding: 16px 28px;
+  background: var(--color-bg-subtle);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.insightsHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.insightsHeader h3 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.insightsHint {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+}
+
+.insightsBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.badgeRow {
+  display: flex;
+  gap: 6px;
+}
+
+.summary {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.summaryPlaceholder {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.body {
+  padding: 20px 28px;
+  font-size: 14px;
+  color: var(--color-text);
+  flex: 1;
+}
+
+.body p {
+  margin: 0 0 12px;
+}
+
+.state,
+.empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.stateError {
+  color: var(--color-danger);
+}

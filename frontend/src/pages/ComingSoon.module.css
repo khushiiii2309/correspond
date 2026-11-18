@@ -1,0 +1,24 @@
+.page {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.inner {
+  max-width: 360px;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: var(--color-text);
+}
+
+.body {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}

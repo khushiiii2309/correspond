@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: correspond-postgres
+    environment:
+      POSTGRES_USER: correspond
+      POSTGRES_PASSWORD: correspond
+      POSTGRES_DB: correspond
+    ports:
+      - "5433:5432"
+    volumes:
+      - correspond_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U correspond"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  correspond_postgres_data:
