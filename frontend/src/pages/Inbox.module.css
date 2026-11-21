@@ -59,6 +59,42 @@
   cursor: default;
 }
 
+.seedStatus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.seedConfirmation {
+  font-size: 13px;
+  color: var(--color-success);
+  font-weight: 500;
+}
+
+.seedReload {
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+  text-decoration: underline;
+}
+
+.seedReload:hover {
+  color: var(--color-text-secondary);
+}
+
+.seedReload:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.seedError {
+  font-size: 12px;
+  color: var(--color-danger);
+}
+
 .body {
   flex: 1;
   display: flex;

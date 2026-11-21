@@ -1,4 +1,6 @@
-import { CategoryBadge, PriorityBadge, UnprocessedBadge } from './Badge'
+import { CategoryBadge, PriorityBadge } from './Badge'
+import ClassificationChip from './ClassificationChip'
+import { CATEGORY_CHOICES, PRIORITY_CHOICES } from '../constants/classification'
 import styles from './EmailDetailPanel.module.css'
 
 function formatFullTimestamp(isoString) {
@@ -11,7 +13,15 @@ function formatFullTimestamp(isoString) {
   })
 }
 
-export default function EmailDetailPanel({ email, loading, error, onToggleRead }) {
+export default function EmailDetailPanel({
+  email,
+  loading,
+  error,
+  onToggleRead,
+  onUpdateClassification,
+  classificationSaving,
+  classificationError,
+}) {
   if (loading) {
     return <div className={styles.state}>Loading email…</div>
   }
@@ -53,22 +63,49 @@ export default function EmailDetailPanel({ email, loading, error, onToggleRead }
           <h3>AI Insights</h3>
           <span className={styles.insightsHint}>AI-generated — verify before acting</span>
         </div>
-        {email.analysis ? (
-          <div className={styles.insightsBody}>
-            <div className={styles.badgeRow}>
-              <CategoryBadge category={email.analysis.category} />
-              <PriorityBadge priority={email.analysis.priority} />
+        <div className={styles.insightsBody}>
+          {email.analysis?.ai_category || email.analysis?.ai_priority ? (
+            <div className={styles.aiSuggestionRow}>
+              <span className={styles.aiSuggestionLabel}>AI suggested</span>
+              <CategoryBadge category={email.analysis.ai_category} />
+              <PriorityBadge priority={email.analysis.ai_priority} />
             </div>
-            <p className={styles.summary}>{email.analysis.summary}</p>
-          </div>
-        ) : (
-          <div className={styles.insightsBody}>
-            <UnprocessedBadge />
+          ) : (
             <p className={styles.summaryPlaceholder}>
-              This email hasn't been analyzed yet. Summaries, priority and task suggestions arrive in a later phase.
+              Not analyzed yet — summaries and suggestions arrive in a later phase. You can still classify it yourself
+              below.
             </p>
+          )}
+
+          <div className={styles.classificationRow}>
+            <div className={styles.classificationItem}>
+              <span className={styles.classificationLabel}>Category</span>
+              <ClassificationChip
+                value={email.analysis?.category ?? null}
+                placeholder="Set category"
+                options={CATEGORY_CHOICES}
+                variantFor={(categoryValue) => categoryValue}
+                disabled={classificationSaving}
+                onChange={(categoryValue) => onUpdateClassification({ category: categoryValue })}
+              />
+            </div>
+            <div className={styles.classificationItem}>
+              <span className={styles.classificationLabel}>Priority</span>
+              <ClassificationChip
+                value={email.analysis?.priority ?? null}
+                placeholder="Set priority"
+                options={PRIORITY_CHOICES}
+                variantFor={(priorityValue) => `priority_${priorityValue}`}
+                disabled={classificationSaving}
+                onChange={(priorityValue) => onUpdateClassification({ priority: priorityValue })}
+              />
+            </div>
+            {classificationSaving && <span className={styles.classificationSaving}>Saving…</span>}
           </div>
-        )}
+          {classificationError && <p className={styles.classificationError}>{classificationError}</p>}
+
+          {email.analysis?.summary && <p className={styles.summary}>{email.analysis.summary}</p>}
+        </div>
       </section>
 
       <section className={styles.body}>

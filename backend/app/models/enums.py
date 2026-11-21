@@ -51,3 +51,4 @@ class ActorType(str, enum.Enum):
 # Shared SQLAlchemy Enum instances for types referenced by more than one table,
 # so Alembic/metadata only ever see a single "CREATE TYPE" for each Postgres enum.
 priority_level_enum = SAEnum(PriorityLevel, name="priority_level")
+email_category_enum = SAEnum(EmailCategory, name="email_category")

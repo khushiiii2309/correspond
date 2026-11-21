@@ -48,9 +48,3 @@
   background: var(--color-neutral-subtle);
   color: var(--color-text-secondary);
 }
-
-.unprocessed {
-  background: var(--color-neutral-subtle);
-  color: var(--color-text-tertiary);
-  font-style: italic;
-}

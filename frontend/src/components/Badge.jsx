@@ -25,7 +25,3 @@ export function PriorityBadge({ priority }) {
     <span className={`${styles.badge} ${styles[`priority_${priority}`]}`}>{PRIORITY_LABELS[priority] ?? priority}</span>
   )
 }
-
-export function UnprocessedBadge() {
-  return <span className={`${styles.badge} ${styles.unprocessed}`}>Not analyzed yet</span>
-}

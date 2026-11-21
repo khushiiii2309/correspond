@@ -24,4 +24,12 @@ export async function updateReadStatus(emailId, isRead) {
   return data
 }
 
+export async function updateClassification(emailId, { category, priority } = {}) {
+  const payload = {}
+  if (category !== undefined) payload.category = category
+  if (priority !== undefined) payload.priority = priority
+  const { data } = await client.patch(`/emails/${emailId}/analysis`, payload)
+  return data
+}
+
 export default client

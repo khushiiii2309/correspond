@@ -95,14 +95,55 @@
   gap: 6px;
 }
 
+.aiSuggestionRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.aiSuggestionLabel {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.classificationRow {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.classificationItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.classificationLabel {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.classificationSaving {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+}
+
+.classificationError {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--color-danger);
+}
+
 .summary {
-  margin: 0;
+  margin: 12px 0 0;
   font-size: 13px;
   color: var(--color-text);
 }
 
 .summaryPlaceholder {
-  margin: 0;
+  margin: 0 0 12px;
   font-size: 13px;
   color: var(--color-text-secondary);
 }

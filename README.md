@@ -5,9 +5,10 @@ what's in your inbox, surface what needs attention, extract action items, and dr
 replies — without ever sending anything on your behalf without approval.
 
 This repository is being built incrementally, phase by phase (see `PROJECT SPEC` in the
-original planning conversation). **This is Phase 1: working foundation.**
+original planning conversation). **This is Phase 1: working foundation**, plus a round of
+UX refinements on top of it.
 
-## Current status (Phase 1 — complete)
+## Current status (Phase 1 — complete, with UX refinements)
 
 - FastAPI backend with the full Phase 1 data model (`users`, `email_accounts`, `emails`,
   `email_analyses`, `tasks`, `reply_drafts`, `activity_logs`) migrated via Alembic.
@@ -16,15 +17,40 @@ original planning conversation). **This is Phase 1: working foundation.**
   reshaping the schema.
 - 12 synthetic sample emails (ordinary mail, deadlines, newsletters, meeting requests,
   multi-task requests, phishing attempts, and a prompt-injection attempt) seedable via
-  one API call.
+  one API call. The inbox toolbar shows "Sample data loaded" once they exist and offers
+  a safe (idempotent) "Reload sample data" action instead of re-showing the load button.
 - React + Vite frontend: unified inbox with search, category/priority filters, unread
-  filter, sort, read/unread toggling, and a reading pane. AI category/priority badges
-  are wired up in the UI but show "Not analyzed yet" until Phase 2 adds the AI service.
-- 11 passing backend tests covering seeding, listing, filtering, detail fetch, read-status
-  updates, and per-user data isolation.
+  filter, sort, read/unread toggling, and a reading pane.
+- **User-editable category and priority.** The reading pane lets you set a category and
+  priority on any email, independent of whether the AI has analyzed it yet. The data
+  model (`EmailAnalysis`) tracks AI suggestion and user choice as separate columns
+  (`ai_category`/`ai_priority` vs. `user_category`/`user_priority`, plus
+  `category_overridden`/`priority_overridden` flags) so Phase 2's classifier can run
+  without ever silently overwriting a human's decision — see "Classification data model"
+  below.
+- Collapsible sidebar: a toggle collapses it to icons-only (with tooltips) on desktop,
+  persisted across reloads via `localStorage`; on narrow screens it becomes an off-canvas
+  drawer opened via a floating menu button.
+- 18 passing backend tests covering seeding, listing, filtering, detail fetch, read-status
+  updates, per-user data isolation, and classification updates/overrides.
 
 **Not implemented yet** (by design — later phases): AI classification/summarization,
 task extraction, reply drafting, Gmail OAuth, activity log UI, authentication.
+
+### Classification data model
+
+`EmailAnalysis` separates *what the AI suggested* from *what the user chose*:
+
+| Column                 | Meaning                                              |
+|-------------------------|-------------------------------------------------------|
+| `ai_category`/`ai_priority` | Set by the Phase 2 classifier. Null until it runs. |
+| `user_category`/`user_priority` | Set only when a user edits the classification. |
+| `category_overridden`/`priority_overridden` | True once a user has set that field. |
+| `category`/`priority` (hybrid properties, not real columns) | The *effective* value: the user's choice if present, else the AI's. Everything the API and UI read (list badges, filters, the detail panel) uses these. |
+
+This means a user can classify an email before the AI ever runs (`ai_category` stays
+null, `category_overridden` becomes true), and when Phase 2 adds the classifier, re-running
+it can safely write `ai_category` without clobbering a user's prior choice.
 
 ## Architecture
 
@@ -114,6 +140,7 @@ Postgres server, different database) and truncate tables between tests.
 | GET    | `/api/emails`                     | List emails (filters: `category`, `priority`, `unread_only`, `search`, `sort`) |
 | GET    | `/api/emails/{email_id}`          | Email detail, including AI analysis if present |
 | PATCH  | `/api/emails/{email_id}/read-status` | Mark read/unread                  |
+| PATCH  | `/api/emails/{email_id}/analysis`    | Set a user category and/or priority (creates the analysis row if it doesn't exist yet) |
 
 Full interactive docs: http://localhost:8001/docs
 

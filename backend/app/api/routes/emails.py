@@ -7,9 +7,11 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.core.database import get_db
 from app.models.email import Email
+from app.models.email_analysis import EmailAnalysis
 from app.models.enums import EmailCategory, PriorityLevel
 from app.models.user import User
-from app.schemas.email import DemoSeedResult, EmailDetail, EmailListItem, ReadStatusUpdate
+from app.schemas.email import ClassificationUpdate, DemoSeedResult, EmailDetail, EmailListItem, ReadStatusUpdate
+from app.services.classification import set_user_classification
 from app.services.demo_seed import ensure_demo_user, seed_demo_emails
 
 router = APIRouter(prefix="/emails", tags=["emails"])
@@ -64,10 +66,10 @@ def list_emails(
         query = query.filter((Email.subject.ilike(like)) | (Email.sender.ilike(like)) | (Email.body_text.ilike(like)))
 
     if category is not None:
-        query = query.filter(Email.analysis.has(category=category))
+        query = query.filter(Email.analysis.has(EmailAnalysis.category == category))
 
     if priority is not None:
-        query = query.filter(Email.analysis.has(priority=priority))
+        query = query.filter(Email.analysis.has(EmailAnalysis.priority == priority))
 
     if sort == "date":
         query = query.order_by(desc(Email.received_at))
@@ -109,4 +111,25 @@ def update_read_status(
     email.is_read = payload.is_read
     db.commit()
     db.refresh(email)
+    return email
+
+
+@router.patch("/{email_id}/analysis", response_model=EmailDetail)
+def update_classification(
+    email_id: uuid.UUID,
+    payload: ClassificationUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> EmailDetail:
+    if payload.category is None and payload.priority is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Provide a category and/or a priority to update"
+        )
+
+    email = db.query(Email).filter(Email.id == email_id, Email.user_id == current_user.id).first()
+    if email is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Email not found")
+
+    set_user_classification(db, email, payload.category, payload.priority)
+    db.expire(email, ["analysis"])
     return email

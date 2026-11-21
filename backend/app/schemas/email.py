@@ -9,10 +9,20 @@ from app.models.enums import EmailCategory, EmailSource, PriorityLevel
 class AnalysisSummary(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    category: EmailCategory
-    priority: PriorityLevel
+    # Effective values: the user's choice if they've made one, else the AI's suggestion.
+    category: EmailCategory | None
+    priority: PriorityLevel | None
+    ai_category: EmailCategory | None = None
+    ai_priority: PriorityLevel | None = None
+    category_overridden: bool
+    priority_overridden: bool
     summary: str
     confidence: float | None = None
+
+
+class ClassificationUpdate(BaseModel):
+    category: EmailCategory | None = None
+    priority: PriorityLevel | None = None
 
 
 class EmailListItem(BaseModel):

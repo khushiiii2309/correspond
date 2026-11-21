@@ -1,30 +1,20 @@
 import { useCallback, useEffect, useState } from 'react'
-import { fetchEmailDetail, fetchEmails, seedDemoEmails, updateReadStatus } from '../api/client'
+import { fetchEmailDetail, fetchEmails, seedDemoEmails, updateClassification, updateReadStatus } from '../api/client'
+import { CATEGORY_CHOICES, PRIORITY_CHOICES } from '../constants/classification'
 import EmailDetailPanel from '../components/EmailDetailPanel'
 import EmailList from '../components/EmailList'
 import styles from './Inbox.module.css'
 
-const CATEGORY_OPTIONS = [
-  { value: '', label: 'All categories' },
-  { value: 'important', label: 'Important' },
-  { value: 'requires_action', label: 'Requires Action' },
-  { value: 'informational', label: 'Informational' },
-  { value: 'promotional', label: 'Promotional' },
-  { value: 'potentially_suspicious', label: 'Potentially Suspicious' },
-]
-
-const PRIORITY_OPTIONS = [
-  { value: '', label: 'All priorities' },
-  { value: 'high', label: 'High' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'low', label: 'Low' },
-]
+const CATEGORY_OPTIONS = [{ value: '', label: 'All categories' }, ...CATEGORY_CHOICES]
+const PRIORITY_OPTIONS = [{ value: '', label: 'All priorities' }, ...PRIORITY_CHOICES]
 
 export default function Inbox() {
   const [emails, setEmails] = useState([])
   const [listLoading, setListLoading] = useState(true)
   const [listError, setListError] = useState(null)
   const [seeding, setSeeding] = useState(false)
+  const [seedError, setSeedError] = useState(null)
+  const [hasSampleData, setHasSampleData] = useState(false)
 
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
@@ -36,6 +26,8 @@ export default function Inbox() {
   const [selectedEmail, setSelectedEmail] = useState(null)
   const [detailLoading, setDetailLoading] = useState(false)
   const [detailError, setDetailError] = useState(null)
+  const [classificationSaving, setClassificationSaving] = useState(false)
+  const [classificationError, setClassificationError] = useState(null)
 
   const loadEmails = useCallback(async () => {
     setListLoading(true)
@@ -59,6 +51,23 @@ export default function Inbox() {
   useEffect(() => {
     loadEmails()
   }, [loadEmails])
+
+  // Checked once, unfiltered, so the seed button's state doesn't flicker back
+  // to "Load sample emails" just because the current filters hide every
+  // sample row (e.g. an active category filter with no matches).
+  useEffect(() => {
+    let isMounted = true
+    fetchEmails({})
+      .then((data) => {
+        if (isMounted && data.some((email) => email.source === 'sample')) {
+          setHasSampleData(true)
+        }
+      })
+      .catch(() => {})
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const loadDetail = useCallback(async (emailId) => {
     setDetailLoading(true)
@@ -97,13 +106,39 @@ export default function Inbox() {
     [selectedId],
   )
 
+  const handleUpdateClassification = useCallback(
+    async (changes) => {
+      if (!selectedId) return
+      setClassificationSaving(true)
+      setClassificationError(null)
+      try {
+        const updated = await updateClassification(selectedId, changes)
+        setSelectedEmail(updated)
+        setEmails((prev) =>
+          prev.map((item) =>
+            item.id === selectedId
+              ? { ...item, category: updated.analysis?.category ?? null, priority: updated.analysis?.priority ?? null }
+              : item,
+          ),
+        )
+      } catch {
+        setClassificationError('Could not save this change. Try again.')
+      } finally {
+        setClassificationSaving(false)
+      }
+    },
+    [selectedId],
+  )
+
   const handleSeed = useCallback(async () => {
     setSeeding(true)
+    setSeedError(null)
     try {
       await seedDemoEmails()
       await loadEmails()
+      setHasSampleData(true)
     } catch {
-      setListError('Could not load sample emails. Is the API running?')
+      setSeedError('Could not load sample emails. Is the API running?')
     } finally {
       setSeeding(false)
     }
@@ -143,9 +178,25 @@ export default function Inbox() {
           <option value="date">Sort by date</option>
           <option value="priority">Sort by priority</option>
         </select>
-        <button type="button" className={styles.seedButton} onClick={handleSeed} disabled={seeding}>
-          {seeding ? 'Loading…' : 'Load sample emails'}
-        </button>
+        {hasSampleData ? (
+          <div className={styles.seedStatus}>
+            <span className={styles.seedConfirmation}>✓ Sample data loaded</span>
+            <button
+              type="button"
+              className={styles.seedReload}
+              onClick={handleSeed}
+              disabled={seeding}
+              title="Re-run sample data seeding. Safe to repeat — existing sample emails are left as-is."
+            >
+              {seeding ? 'Reloading…' : 'Reload sample data'}
+            </button>
+          </div>
+        ) : (
+          <button type="button" className={styles.seedButton} onClick={handleSeed} disabled={seeding}>
+            {seeding ? 'Loading…' : 'Load sample emails'}
+          </button>
+        )}
+        {seedError && <span className={styles.seedError}>{seedError}</span>}
       </div>
 
       <div className={styles.body}>
@@ -156,7 +207,15 @@ export default function Inbox() {
           <EmailList emails={emails} selectedId={selectedId} onSelect={handleSelect} loading={listLoading} error={listError} />
         </div>
         <div className={styles.detailPane}>
-          <EmailDetailPanel email={selectedEmail} loading={detailLoading} error={detailError} onToggleRead={handleToggleRead} />
+          <EmailDetailPanel
+            email={selectedEmail}
+            loading={detailLoading}
+            error={detailError}
+            onToggleRead={handleToggleRead}
+            onUpdateClassification={handleUpdateClassification}
+            classificationSaving={classificationSaving}
+            classificationError={classificationError}
+          />
         </div>
       </div>
     </div>
